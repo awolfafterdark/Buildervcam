@@ -28,5 +28,5 @@ jobs:
       run: |
         git add .
         git commit -m "Add opensdk as a submodule"
-        git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/${{ github.repository }} main
+        git push https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/awolfafterdark/Buildervcam main
 
