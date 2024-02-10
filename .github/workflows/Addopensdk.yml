@@ -1,0 +1,32 @@
+name: Add opensdk Submodule
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  add-submodule:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        # Fetches the full history so submodules can be added
+        fetch-depth: 0 
+
+    - name: Configure Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+
+    - name: Add opensdk Submodule
+      run: |
+        git submodule add https://github.com/WaxMoon/opensdk opensdk
+        git submodule update --init --recursive
+
+    - name: Commit and Push Submodule
+      run: |
+        git add .
+        git commit -m "Add opensdk as a submodule"
+        # Replace 'main' with your default branch name if different
+        git push origin main
