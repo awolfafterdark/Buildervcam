@@ -1,0 +1,62 @@
+name: Android CI Build with Gradle Wrapper Setup
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  setup-gradle-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+
+      - name: Check Gradle Wrapper Presence
+        id: gradle-wrapper-check
+        run: |
+          if [ ! -f gradlew ] || [ ! -d gradle/wrapper ]; then
+            echo "Gradle Wrapper missing. Attempting to set it up..."
+            echo "SETUP_WRAPPER=true" >> $GITHUB_ENV
+          else
+            echo "Gradle Wrapper found."
+            echo "SETUP_WRAPPER=false" >> $GITHUB_ENV
+          fi
+
+      - name: Set up JDK 11
+        if: env.SETUP_WRAPPER == 'true'
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+
+      - name: Generate Gradle Wrapper
+        if: env.SETUP_WRAPPER == 'true'
+        run: |
+          gradle wrapper --gradle-version 7.0.2
+        shell: bash
+
+      - name: Grant Execution Permissions for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Cache Gradle Packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
